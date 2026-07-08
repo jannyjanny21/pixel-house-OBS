@@ -52,7 +52,7 @@ export default function HomePage() {
                <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center text-center">
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-100/90">
                      <Camera className="h-4 w-4" />
-                     Pixel House Booking Studio
+                     Pixel House Studio
                   </div>
 
                   <h1 className="max-w-4xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
