@@ -1,7 +1,7 @@
 // HomeLayout.tsx
 import type { ReactNode } from 'react'
 import { User2 } from 'lucide-react'
-import { Button } from '../components/ui/button'
+import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
 
 type HomeLayoutProps = {

@@ -1,23 +1,23 @@
 // src/pages/auth/LoginPage.tsx
-import { useState, type FormEvent } from 'react'
+import { useState, type SyntheticEvent } from 'react'
 import { ArrowLeft, Lock, UserRound } from 'lucide-react'
-import AuthLayout from '../../layout/auth/AuthLayout'
-import { Button } from '../../components/ui/button'
+import AuthLayout from '@/layout/auth/AuthLayout'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../components/ui/card'
-import { Input } from '../../components/ui/input'
-import { Label } from '../../components/ui/label'
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     console.log({ username, password })
   }

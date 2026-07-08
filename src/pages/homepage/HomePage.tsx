@@ -1,14 +1,13 @@
 // HomePage.tsx
 import {
-   CalendarDays,
    CheckCircle2,
    Camera,
    Users2,
    Star,
 } from 'lucide-react'
-import { Button } from '../../components/ui/button'
-import { Card, CardContent } from '../../components/ui/card'
-import HomeLayout from '../../layout/HomeLayout.tsx'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import HomeLayout from '@/layout/HomeLayout.tsx'
 
 const packages = [
    {
