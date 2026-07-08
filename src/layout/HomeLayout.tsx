@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import { User2 } from 'lucide-react'
 import { Button } from '../components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 type HomeLayoutProps = {
    children: ReactNode
@@ -13,6 +14,7 @@ const navItems = [
 ]
 
 export default function HomeLayout({ children }: HomeLayoutProps) {
+   const navigate = useNavigate()
    return (
       <div className="min-h-screen bg-slate-100 text-slate-900">
          <header className="sticky top-0 z-50 border-b border-white/10 bg-[#203b62] text-white shadow-sm">
@@ -44,6 +46,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                   </Button>
                   <button
                      type="button"
+                     onClick={() => navigate('/login')}
                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/15"
                      aria-label="Account"
                   >
