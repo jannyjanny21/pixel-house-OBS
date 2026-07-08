@@ -1,5 +1,5 @@
-import LoginPage from './pages/auth/LoginPage.tsx'
+import HomePage from './pages/homepage/HomePage'
 
 export default function App() {
-  return <LoginPage />
+  return <HomePage />
 }
