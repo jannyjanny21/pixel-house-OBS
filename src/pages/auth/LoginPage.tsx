@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import pixelHouseLogo from '@/assets/pixelhouselogo.jpg'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -26,8 +27,12 @@ export default function LoginPage() {
     <AuthLayout>
       <Card className="rounded-[28px] border-0 bg-white px-6 py-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
         <CardHeader className="space-y-5 p-0 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2f6bff] text-white shadow-sm">
-            <span className="text-lg font-black">Pixel House</span>
+          <div className="mx-auto flex h-20 w-20 items-center justify-center text-white shadow-sm rounded-xl">
+            <img
+              src={pixelHouseLogo}
+              alt="Pixel House Studio"
+              className="h-17 w-17 object-fill"
+            />
           </div>
 
           <div>
