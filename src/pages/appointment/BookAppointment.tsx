@@ -86,7 +86,7 @@ export default function BookAppointment() {
    })
 
 
-   const [submitMessage, setSubmitMessage] = useState<string | null>(null)
+   const [submitMessage] = useState<string | null>(null)
 
 
    function updateField<K extends keyof CreateAppointmentDto>(
