@@ -60,7 +60,10 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                         ))}
                      </nav>
 
-                     <Button className="rounded-full bg-[#ff6b2d] px-5 font-semibold text-white hover:bg-[#ff5a17]">
+                     <Button
+                        className="rounded-full bg-[#ff6b2d] px-5 font-semibold text-white hover:bg-[#ff5a17]"
+                        onClick={() => handleNavigate("/book-appointments")}
+                     >
                         Book Now
                      </Button>
 
