@@ -7,7 +7,8 @@ import {
    KeyRound,
    LogOut,
    Menu,
-   X
+   X,
+   Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import pixelHouseLogo from '@/assets/pixelhouselogo.jpg'
@@ -39,6 +40,11 @@ const navItems = [
       label: 'Reports',
       icon: BarChart3,
       href: '/admin/reports'
+   },
+   {
+      label: 'Manage Packages',
+      icon: Package,
+      href: '/admin/packages'
    },
    {
       label: 'Accounts',
