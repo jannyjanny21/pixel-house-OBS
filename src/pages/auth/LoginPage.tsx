@@ -31,7 +31,7 @@ export default function LoginPage() {
     })
 
     if (result) {
-      navigate('/')
+      navigate('/admin/dashboard')
     }
   }
 

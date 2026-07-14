@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import HomePage from './pages/homepage/HomePage'
 import LoginPage from './pages/auth/LoginPage'
 import BookAppointment from './pages/appointment/BookAppointment'
+import Dashboard from './pages/admin/Dashboard'
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/book-appointments" element={<BookAppointment />} />
+      <Route path="/admin/dashboard" element={<Dashboard />} />
     </Routes>
   )
 }
