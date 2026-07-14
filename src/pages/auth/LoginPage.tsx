@@ -14,18 +14,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import pixelHouseLogo from '@/assets/pixelhouselogo.jpg'
-import { useLogin } from '@/hooks/useLogin'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
-  const { signIn, isSubmitting, error } = useLogin()
+  const { login, isSubmitting, error } = useAuth()
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const result = await signIn({
+    const result = await login({
       username,
       password,
     })

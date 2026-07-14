@@ -9,9 +9,10 @@ import {
    Menu,
    X
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import pixelHouseLogo from '@/assets/pixelhouselogo.jpg'
+import { useAuth } from '@/hooks/useAuth'
+import ProtectedRoute from '@/routes/ProtectedRoutes'
 
 type ALProps = {
    children: ReactNode
@@ -46,13 +47,12 @@ const navItems = [
    },
 ]
 
-export default function AdminLayout({ children }: ALProps) {
-   const navigate = useNavigate()
+function AdminLayoutContent({ children }: ALProps) {
+   const { logout } = useAuth()
    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
    const handleLogout = () => {
-      // TODO: Add logout logic here (clear tokens, etc.)
-      navigate('/')
+      logout()
    }
 
    return (
@@ -160,5 +160,13 @@ export default function AdminLayout({ children }: ALProps) {
             />
          )}
       </div>
+   )
+}
+
+export default function AdminLayout({ children }: ALProps) {
+   return (
+      <ProtectedRoute>
+         <AdminLayoutContent>{children}</AdminLayoutContent>
+      </ProtectedRoute>
    )
 }
