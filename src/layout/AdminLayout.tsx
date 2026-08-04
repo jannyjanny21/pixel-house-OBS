@@ -23,8 +23,7 @@ const navItems = [
    {
       label: 'Dashboard',
       icon: LayoutDashboard,
-      href: '/',
-      isActive: true
+      href: '/admin/dashboard',
    },
    {
       label: 'Bookings',
@@ -35,11 +34,6 @@ const navItems = [
       label: 'Calendar',
       icon: Calendar,
       href: '/admin/calendar'
-   },
-   {
-      label: 'Reports',
-      icon: BarChart3,
-      href: '/admin/reports'
    },
    {
       label: 'Manage Packages',
@@ -90,7 +84,7 @@ function AdminLayoutContent({ children }: ALProps) {
                   <div className="space-y-1">
                      {navItems.map((item) => {
                         const Icon = item.icon
-                        const isActive = item.isActive || window.location.pathname === item.href
+                        const isActive = window.location.pathname === item.href
 
                         return (
                            <a
@@ -129,28 +123,6 @@ function AdminLayoutContent({ children }: ALProps) {
 
          {/* Main Content Area */}
          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Top Bar */}
-            <header className="h-16 border-b bg-white px-6 flex items-center justify-between shadow-sm z-40">
-               <div className="flex items-center gap-4">
-                  <button
-                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                     className="md:hidden text-slate-600 hover:text-slate-900"
-                  >
-                     {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                  </button>
-
-                  <div className="font-semibold text-slate-800">
-                     Dashboard
-                  </div>
-               </div>
-
-               <div className="flex items-center gap-4">
-                  {/* You can add user avatar, notifications, etc. here */}
-                  <div className="text-sm text-slate-500">
-                     Welcome back, Admin
-                  </div>
-               </div>
-            </header>
 
             {/* Page Content */}
             <main className="flex-1 overflow-auto p-6">

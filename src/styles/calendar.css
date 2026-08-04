@@ -1,0 +1,48 @@
+/* Toolbar button group */
+.fc .fc-button-group {
+   gap: 0;
+   border-radius: 8px;
+   overflow: hidden;
+   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* Default buttons */
+.fc .fc-button-primary {
+   background: #1e2a44 !important; /* blue */
+   border: none !important;
+   color: white !important;
+   box-shadow: none !important;
+   transition: all 0.2s ease;
+}
+
+/* Hover */
+.fc .fc-button-primary:hover {
+   background: #3a445c !important;
+}
+
+/* Active button (Month / Week / Day / List) */
+.fc .fc-button-primary.fc-button-active {
+   background: #f97316 !important; /* orange */
+   color: white !important;
+}
+
+/* Prevent Bootstrap-like focus ring */
+.fc .fc-button-primary:focus,
+.fc .fc-button-primary:active {
+   box-shadow: none !important;
+}
+
+/* Disabled buttons */
+.fc .fc-button-primary:disabled {
+   opacity: 0.6;
+}
+
+.fc-daygrid-event {
+   border: none !important;
+   background: transparent !important;
+   padding: 0 !important;
+}
+
+.fc-daygrid-event-harness {
+   margin-top: 2px;
+}
