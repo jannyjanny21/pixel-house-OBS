@@ -12,8 +12,8 @@ import {
    AlertDialogHeader,
    AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import AdminLayout from '@/layout/AdminLayout' // adjust to your actual path
-import PackageCard from '@/components/packages/packageCard'
+import AdminLayout from '@/layout/AdminLayout'
+import PackageCard from '@/components/packages/PackageCard'
 import PackageFormDialog from '@/components/packages/PackageFormDialog'
 import { usePackages } from '@/hooks/useManagePackages'
 import type { GetPackageDto } from '@/types/packages/GetPackageDto'

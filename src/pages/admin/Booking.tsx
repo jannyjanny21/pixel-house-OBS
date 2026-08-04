@@ -5,7 +5,6 @@ import {
    ArrowUp,
    ArrowUpDown,
    Check,
-   Clock3,
    Loader2,
    Mail,
    Phone,

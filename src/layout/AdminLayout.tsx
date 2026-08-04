@@ -3,11 +3,8 @@ import {
    LayoutDashboard,
    Calendar,
    BookOpen,
-   BarChart3,
    KeyRound,
    LogOut,
-   Menu,
-   X,
    Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
