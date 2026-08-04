@@ -7,6 +7,7 @@ import {
    Check,
    Loader2,
    Mail,
+   Pencil,
    Phone,
    RefreshCw,
    Trash2,
@@ -32,6 +33,7 @@ import {
 import {
    deleteAppointment,
    getAppointments,
+   updateAppointment,
    updateAppointmentStatus,
 } from "@/services/appointments.service"
 import {
@@ -44,34 +46,29 @@ import {
    AlertDialogHeader,
    AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import AppointmentFormDialog from "@/components/appointments/AppointmentFormDialog"
 import type { GetAppointmentResponseDto } from "@/types/appointments/GetAppointmentResponseDto"
+import type { UpdateAppointmentDto } from "@/types/appointments/UpdateAppointmentDto"
 import { formatCurrency, formatShortDate } from "@/lib/salesFormatters"
 
 const ITEMS_PER_PAGE = 8;
 
-const STATUS_STYLES: Record<
-   string,
-   { label: string; className: string }
-> = {
+const STATUS_STYLES: Record<string, { label: string; className: string }> = {
    pending: {
       label: "Pending",
-      className:
-         "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50",
+      className: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50",
    },
    confirmed: {
       label: "Confirmed",
-      className:
-         "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50",
    },
    rejected: {
       label: "Rejected",
-      className:
-         "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-50",
+      className: "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-50",
    },
    cancelled: {
       label: "Cancelled",
-      className:
-         "border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-100",
+      className: "border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-100",
    },
 };
 
@@ -315,9 +312,7 @@ export default function Booking() {
    const [busyAppointmentId, setBusyAppointmentId] = useState<number | null>(
       null,
    );
-   const [busyAction, setBusyAction] = useState<
-      "confirm" | "reject" | "delete" | null
-   >(null);
+   const [busyAction, setBusyAction] = useState<"confirm" | "reject" | "delete" | null>(null);
 
    useEffect(() => {
       let isCancelled = false;
@@ -458,7 +453,7 @@ export default function Booking() {
       }
    }
 
-   // --- state additions (alongside your existing busyAppointmentId/busyAction/error/message state) ---
+   // --- delete dialog state ---
    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
    function openDeleteDialog(appointmentId: number) {
@@ -491,6 +486,41 @@ export default function Booking() {
          setBusyAction(null);
          setPendingDeleteId(null);
       }
+   }
+
+   // --- edit dialog state ---
+   const [editTarget, setEditTarget] = useState<GetAppointmentResponseDto | null>(
+      null,
+   );
+   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+   function openEditDialog(appointment: GetAppointmentResponseDto) {
+      setEditTarget(appointment);
+      setIsEditDialogOpen(true);
+   }
+
+   function handleEditDialogChange(open: boolean) {
+      setIsEditDialogOpen(open);
+
+      // Clear the target once the dialog has fully closed so the next open
+      // doesn't briefly flash stale data before the effect re-seeds it.
+      if (!open) {
+         setEditTarget(null);
+      }
+   }
+
+   async function handleEditSubmit(
+      appointmentId: number,
+      dto: UpdateAppointmentDto,
+   ) {
+      await updateAppointment(appointmentId, dto);
+
+      setMessage({
+         type: "success",
+         text: "Booking updated successfully.",
+      });
+
+      await refetch();
    }
 
    const bookingTypeStyles: Record<string, string> = {
@@ -808,6 +838,17 @@ export default function Booking() {
                                              variant="outline"
                                              size="icon-sm"
                                              className="border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                                             onClick={() => openEditDialog(appointment)}
+                                             disabled={isBusy}
+                                             title="Edit booking"
+                                          >
+                                             <Pencil className="h-4 w-4" />
+                                          </Button>
+
+                                          <Button
+                                             variant="outline"
+                                             size="icon-sm"
+                                             className="border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
                                              onClick={() => openDeleteDialog(appointment.id)}
                                              disabled={isBusy}
                                              title="Delete booking"
@@ -823,50 +864,58 @@ export default function Booking() {
                                  </tr>
                               );
                            })}
-                           <AlertDialog
-                              open={pendingDeleteId !== null}
-                              onOpenChange={(open) => {
-                                 // Prevent closing the dialog mid-delete (e.g. via ESC or overlay click)
-                                 if (!open && busyAction !== "delete") {
-                                    closeDeleteDialog();
-                                 }
-                              }}
-                           >
-                              <AlertDialogContent>
-                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete this booking?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                       This action cannot be undone. This will permanently delete the
-                                       booking from the schedule.
-                                    </AlertDialogDescription>
-                                 </AlertDialogHeader>
-                                 <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={busyAction === "delete"}>
-                                       Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                       className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
-                                       disabled={busyAction === "delete"}
-                                       onClick={(e) => {
-                                          // Prevent AlertDialogAction's default auto-close;
-                                          // handleDelete controls closing via setPendingDeleteId(null)
-                                          e.preventDefault();
-                                          if (pendingDeleteId !== null) {
-                                             handleDelete(pendingDeleteId);
-                                          }
-                                       }}
-                                    >
-                                       {busyAction === "delete" ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                       ) : (
-                                          "Delete"
-                                       )}
-                                    </AlertDialogAction>
-                                 </AlertDialogFooter>
-                              </AlertDialogContent>
-                           </AlertDialog>
                         </tbody>
                      </table>
+
+                     <AlertDialog
+                        open={pendingDeleteId !== null}
+                        onOpenChange={(open) => {
+                           // Prevent closing the dialog mid-delete (e.g. via ESC or overlay click)
+                           if (!open && busyAction !== "delete") {
+                              closeDeleteDialog();
+                           }
+                        }}
+                     >
+                        <AlertDialogContent>
+                           <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this booking?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                 This action cannot be undone. This will permanently delete the
+                                 booking from the schedule.
+                              </AlertDialogDescription>
+                           </AlertDialogHeader>
+                           <AlertDialogFooter>
+                              <AlertDialogCancel disabled={busyAction === "delete"}>
+                                 Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                 className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+                                 disabled={busyAction === "delete"}
+                                 onClick={(e) => {
+                                    // Prevent AlertDialogAction's default auto-close;
+                                    // handleDelete controls closing via setPendingDeleteId(null)
+                                    e.preventDefault();
+                                    if (pendingDeleteId !== null) {
+                                       handleDelete(pendingDeleteId);
+                                    }
+                                 }}
+                              >
+                                 {busyAction === "delete" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                 ) : (
+                                    "Delete"
+                                 )}
+                              </AlertDialogAction>
+                           </AlertDialogFooter>
+                        </AlertDialogContent>
+                     </AlertDialog>
+
+                     <AppointmentFormDialog
+                        open={isEditDialogOpen}
+                        onOpenChange={handleEditDialogChange}
+                        appointment={editTarget}
+                        onSubmit={handleEditSubmit}
+                     />
                   </div>
                )}
 

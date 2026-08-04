@@ -3,7 +3,6 @@ import {
    LayoutDashboard,
    Calendar,
    BookOpen,
-   KeyRound,
    LogOut,
    Package,
 } from 'lucide-react'
@@ -37,11 +36,11 @@ const navItems = [
       icon: Package,
       href: '/admin/packages'
    },
-   {
-      label: 'Accounts',
-      icon: KeyRound,
-      href: '/admin/accounts'
-   },
+   // {
+   //    label: 'Accounts',
+   //    icon: KeyRound,
+   //    href: '/admin/accounts'
+   // },
 ]
 
 function AdminLayoutContent({ children }: ALProps) {
