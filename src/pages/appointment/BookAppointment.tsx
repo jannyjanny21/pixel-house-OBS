@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { usePackages } from '@/hooks/usePackages'
 import { useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import {
    Popover,
    PopoverContent,
@@ -66,6 +67,17 @@ export default function BookAppointment() {
    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
    const navigate = useNavigate()
+   const location = useLocation()
+
+   useEffect(() => {
+      const pkgId = (location.state as any)?.packageId
+      if (typeof pkgId === 'number' && pkgId > 0) {
+         setFormData((current) => ({
+            ...current,
+            packageIDs: current.packageIDs.includes(pkgId) ? current.packageIDs : [pkgId],
+         }))
+      }
+   }, [location.state])
 
    const allPackages = useMemo(() => {
       const items = [featuredPackage, ...compactPackages, ...morePackages].filter(
@@ -496,7 +508,7 @@ export default function BookAppointment() {
                                              onClick={() =>
                                                 setFormData((current) => ({
                                                    ...current,
-                                                   packageIds: current.packageIDs.filter((id) => id !== pkg.id),
+                                                   packageIDs: current.packageIDs.filter((id) => id !== pkg.id),
                                                 }))
                                              }
                                              className="rounded-full px-3 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-50"

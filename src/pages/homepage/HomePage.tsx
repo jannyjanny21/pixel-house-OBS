@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import HomeLayout from '@/layout/HomeLayout.tsx'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePackages } from '@/hooks/usePackages'
 import {
    formatMaxPeople,
@@ -25,6 +26,7 @@ const stats = [
 
 export default function HomePage() {
    const [showMore, setShowMore] = useState(false)
+   const navigate = useNavigate()
    const {
       isLoading,
       error,
@@ -159,7 +161,12 @@ export default function HomePage() {
                                  </div>
                               </div>
 
-                              <Button className="mt-8 h-12 rounded-full bg-white text-base font-bold text-[#304866] hover:bg-slate-100">
+                              <Button
+                                 className="mt-8 h-12 rounded-full bg-white text-base font-bold text-[#304866] hover:bg-slate-100"
+                                 onClick={() =>
+                                    navigate('/book-appointments', { state: { packageId: featuredPackage.id } })
+                                 }
+                              >
                                  Select Package
                               </Button>
                            </CardContent>
@@ -214,6 +221,7 @@ export default function HomePage() {
                                  <Button
                                     variant="outline"
                                     className="mt-4 h-10 rounded-full border-[#ff6b2d] text-sm font-bold text-[#ff6b2d] hover:bg-[#ff6b2d] hover:text-white"
+                                    onClick={() => navigate('/book-appointments', { state: { packageId: pkg.id } })}
                                  >
                                     Select Package
                                  </Button>
@@ -271,6 +279,7 @@ export default function HomePage() {
                                           <Button
                                              variant="outline"
                                              className="mt-8 h-12 rounded-full border-[#ff6b2d] text-base font-bold text-[#ff6b2d] hover:bg-[#ff6b2d] hover:text-white"
+                                             onClick={() => navigate('/book-appointments', { state: { packageId: pkg.id } })}
                                           >
                                              Select Package
                                           </Button>
