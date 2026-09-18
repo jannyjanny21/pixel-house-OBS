@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { AlertCircle, ArrowRight, Camera, Edit2, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { AlertCircle, Camera, Edit2, Plus, Sparkles, Trash2 } from 'lucide-react'
 import AdminLayout from '@/layout/AdminLayout'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
