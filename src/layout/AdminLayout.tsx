@@ -5,6 +5,7 @@ import {
    BookOpen,
    LogOut,
    Package,
+   Book,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import pixelHouseLogo from '@/assets/pixelhouselogo.jpg'
@@ -36,11 +37,11 @@ const navItems = [
       icon: Package,
       href: '/admin/packages'
    },
-   // {
-   //    label: 'Accounts',
-   //    icon: KeyRound,
-   //    href: '/admin/accounts'
-   // },
+   {
+      label: 'Manage Portfolio',
+      icon: Book,
+      href: '/admin/manage-portfolio'
+   },
 ]
 
 function AdminLayoutContent({ children }: ALProps) {

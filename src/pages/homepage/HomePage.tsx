@@ -59,7 +59,10 @@ export default function HomePage() {
                </p>
 
                <div className="mt-8">
-                  <Button className="h-14 rounded-full bg-[#ff6b2d] px-8 text-base font-bold text-white shadow-[0_12px_24px_rgba(255,107,45,0.35)] hover:bg-[#ff5a17]">
+                  <Button
+                     onClick={() => navigate('/portfolio')}
+                     className="h-14 rounded-full bg-[#ff6b2d] px-8 text-base font-bold text-white shadow-[0_12px_24px_rgba(255,107,45,0.35)] hover:bg-[#ff5a17]"
+                  >
                      View Portfolio
                   </Button>
                </div>

@@ -6,11 +6,14 @@ import Dashboard from './pages/admin/Dashboard'
 import Booking from "./pages/admin/Booking"
 import Calendar from './pages/admin/Calendar'
 import Packages from './pages/admin/Packages'
+import PortfolioHome from './pages/portfolio/PortfolioHome'
+import Portfolios from './pages/admin/Portfolios'
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/portfolio" element={<PortfolioHome />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/book-appointments" element={<BookAppointment />} />
 
@@ -19,6 +22,7 @@ export default function App() {
       <Route path="/admin/bookings" element={<Booking />} />
       <Route path="/admin/calendar" element={<Calendar />} />
       <Route path="/admin/packages" element={<Packages />} />
+      <Route path="/admin/manage-portfolio" element={<Portfolios />} />
     </Routes>
   )
 }

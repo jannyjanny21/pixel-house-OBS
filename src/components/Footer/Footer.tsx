@@ -18,7 +18,7 @@ type SocialLink = {
 const quickLinks: QuickLink[] = [
    { label: 'Home', href: '/' },
    { label: 'Book Now', href: '/book' },
-   { label: 'Portfolio', href: '/#packages' },
+   { label: 'Portfolio', href: '/portfolio' },
    { label: 'Contact Us', href: '/contact' },
 ]
 

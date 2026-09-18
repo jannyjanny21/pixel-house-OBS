@@ -17,7 +17,7 @@ type HomeLayoutProps = {
 
 const navItems = [
    { label: 'Home', href: '/' },
-   { label: 'Portfolio', href: '#packages' },
+   { label: 'Portfolio', href: '/portfolio' },
 ]
 
 export default function HomeLayout({ children }: HomeLayoutProps) {
