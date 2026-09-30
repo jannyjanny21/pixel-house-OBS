@@ -1,5 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { AlertCircle, Camera, Edit2, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import {
+   AlertCircle,
+   Camera,
+   Edit2,
+   ImagePlus,
+   Images,
+   Plus,
+   Sparkles,
+   Trash2,
+   X,
+} from 'lucide-react'
 import AdminLayout from '@/layout/AdminLayout'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -27,6 +37,7 @@ import {
 import heroBanner from '@/assets/hero.png'
 import { usePortfolios } from '@/hooks/usePortfolios'
 import { createPortfolio, deletePortfolio, updatePortfolio } from '@/services/portfolios.service'
+import { toImageSrc } from '@/lib/portfolioImage'
 import type { GetPortfolioDto } from '@/types/portfolios/GetPortfolioDto'
 import type { CreatePortfolioDto } from '@/types/portfolios/CreatePortfolioDto'
 import type { UpdatePortfolioDto } from '@/types/portfolios/UpdatePortfolioDto'
@@ -39,20 +50,60 @@ const accentClasses = [
    'from-fuchsia-950/85 via-fuchsia-900/30 to-transparent',
 ]
 
+// Mirrors the backend [ImageFiles] validation
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
 type PortfolioFormState = {
    title: string
    category: string
    description: string
-   image: string
 }
 
 type PortfolioFormErrors = Partial<Record<'title' | 'category', string>>
+
+type PendingImage = {
+   key: string
+   file: File
+   previewUrl: string
+}
 
 const EMPTY_FORM: PortfolioFormState = {
    title: '',
    category: '',
    description: '',
-   image: '',
+}
+
+type ImageThumbProps = {
+   src: string
+   alt: string
+   badge?: string
+   disabled?: boolean
+   onRemove: () => void
+}
+
+function ImageThumb({ src, alt, badge, disabled, onRemove }: ImageThumbProps) {
+   return (
+      <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+         <img src={src} alt={alt} className="h-full w-full object-cover" />
+
+         {badge && (
+            <span className="absolute left-1.5 top-1.5 rounded-full bg-[#ff6b2d] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+               {badge}
+            </span>
+         )}
+
+         <button
+            type="button"
+            onClick={onRemove}
+            disabled={disabled}
+            aria-label={`Remove ${alt}`}
+            className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-red-600 disabled:opacity-50"
+         >
+            <X className="h-4 w-4" />
+         </button>
+      </div>
+   )
 }
 
 type PortfolioFormDialogProps = {
@@ -75,6 +126,28 @@ function PortfolioFormDialog({
    const [isSubmitting, setIsSubmitting] = useState(false)
    const [submitError, setSubmitError] = useState<string | null>(null)
 
+   // Images held locally until Save
+   const [newImages, setNewImages] = useState<PendingImage[]>([])
+   const [removedImageIds, setRemovedImageIds] = useState<number[]>([])
+   const [imageError, setImageError] = useState<string | null>(null)
+
+   const fileInputRef = useRef<HTMLInputElement>(null)
+   const newImagesRef = useRef<PendingImage[]>([])
+
+   useEffect(() => {
+      newImagesRef.current = newImages
+   }, [newImages])
+
+   // Free preview URLs when the component unmounts
+   useEffect(() => {
+      return () => newImagesRef.current.forEach((img) => URL.revokeObjectURL(img.previewUrl))
+   }, [])
+
+   const clearNewImages = () => {
+      newImagesRef.current.forEach((img) => URL.revokeObjectURL(img.previewUrl))
+      setNewImages([])
+   }
+
    useEffect(() => {
       if (!open) return
 
@@ -83,15 +156,63 @@ function PortfolioFormDialog({
             title: initialData.title,
             category: initialData.category,
             description: initialData.description ?? '',
-            image: initialData.image ?? '',
          })
       } else {
          setForm(EMPTY_FORM)
       }
 
+      clearNewImages()
+      setRemovedImageIds([])
+      setImageError(null)
       setErrors({})
       setSubmitError(null)
    }, [open, mode, initialData])
+
+   const existingImages =
+      mode === 'edit' && initialData
+         ? initialData.images.filter((img) => !removedImageIds.includes(img.id))
+         : []
+
+   const totalImages = existingImages.length + newImages.length
+
+   const handleFilesSelected = (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? [])
+      event.target.value = '' // allows picking the same file again later
+
+      const accepted: PendingImage[] = []
+      const rejected: string[] = []
+
+      for (const file of files) {
+         if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            rejected.push(`${file.name} (unsupported type)`)
+            continue
+         }
+         if (file.size > MAX_IMAGE_BYTES) {
+            rejected.push(`${file.name} (over 5 MB)`)
+            continue
+         }
+         accepted.push({
+            key: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            file,
+            previewUrl: URL.createObjectURL(file),
+         })
+      }
+
+      setNewImages((prev) => [...prev, ...accepted])
+      setImageError(rejected.length > 0 ? `Skipped: ${rejected.join(', ')}` : null)
+   }
+
+   const removeNewImage = (key: string) => {
+      setNewImages((prev) => {
+         const target = prev.find((img) => img.key === key)
+         if (target) URL.revokeObjectURL(target.previewUrl)
+         return prev.filter((img) => img.key !== key)
+      })
+   }
+
+   const removeExistingImage = (id: number) => {
+      setRemovedImageIds((prev) => [...prev, id])
+   }
 
    const validate = () => {
       const nextErrors: PortfolioFormErrors = {}
@@ -107,12 +228,20 @@ function PortfolioFormDialog({
       event.preventDefault()
       if (!validate()) return
 
-      const payload: CreatePortfolioDto | UpdatePortfolioDto = {
+      const base = {
          title: form.title.trim(),
          category: form.category.trim(),
          description: form.description.trim() || undefined,
-         image: form.image.trim() || undefined,
       }
+
+      const payload: CreatePortfolioDto | UpdatePortfolioDto =
+         mode === 'create'
+            ? { ...base, images: newImages.map((img) => img.file) }
+            : {
+               ...base,
+               newImages: newImages.map((img) => img.file),
+               removeImageIds: removedImageIds,
+            }
 
       setIsSubmitting(true)
       setSubmitError(null)
@@ -128,7 +257,7 @@ function PortfolioFormDialog({
    }
 
    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(next) => !isSubmitting && onOpenChange(next)}>
          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader>
                <DialogTitle>{mode === 'create' ? 'Add Portfolio' : 'Edit Portfolio'}</DialogTitle>
@@ -163,16 +292,6 @@ function PortfolioFormDialog({
                </div>
 
                <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
-                  <Input
-                     id="image"
-                     value={form.image}
-                     onChange={(e) => setForm((prev) => ({ ...prev, image: e.target.value }))}
-                     placeholder="https://..."
-                  />
-               </div>
-
-               <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                      id="description"
@@ -181,6 +300,75 @@ function PortfolioFormDialog({
                      placeholder="Short description for the portfolio card"
                      rows={4}
                   />
+               </div>
+
+               <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                     <Label>Images</Label>
+                     <span className="text-xs text-slate-500">
+                        {totalImages} {totalImages === 1 ? 'image' : 'images'} · first image is the cover
+                     </span>
+                  </div>
+
+                  <input
+                     ref={fileInputRef}
+                     type="file"
+                     accept={ALLOWED_IMAGE_TYPES.join(',')}
+                     multiple
+                     className="hidden"
+                     onChange={handleFilesSelected}
+                  />
+
+                  <div className="grid grid-cols-3 gap-3">
+                     {existingImages.map((img) => (
+                        <ImageThumb
+                           key={`existing-${img.id}`}
+                           src={toImageSrc(img)}
+                           alt={img.fileName ?? `Image ${img.id}`}
+                           disabled={isSubmitting}
+                           onRemove={() => removeExistingImage(img.id)}
+                        />
+                     ))}
+
+                     {newImages.map((img) => (
+                        <ImageThumb
+                           key={img.key}
+                           src={img.previewUrl}
+                           alt={img.file.name}
+                           badge={mode === 'edit' ? 'New' : undefined}
+                           disabled={isSubmitting}
+                           onRemove={() => removeNewImage(img.key)}
+                        />
+                     ))}
+
+                     <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isSubmitting}
+                        className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-[#ff6b2d] hover:text-[#ff6b2d] disabled:opacity-50"
+                     >
+                        <ImagePlus className="h-6 w-6" />
+                        <span className="text-xs font-semibold">Upload Image</span>
+                     </button>
+                  </div>
+
+                  <p className="text-xs text-slate-500">JPG, PNG, WEBP or GIF, up to 5 MB each.</p>
+
+                  {removedImageIds.length > 0 && (
+                     <p className="text-xs text-amber-600">
+                        {removedImageIds.length} existing{' '}
+                        {removedImageIds.length === 1 ? 'image' : 'images'} will be removed when you save.{' '}
+                        <button
+                           type="button"
+                           onClick={() => setRemovedImageIds([])}
+                           className="font-semibold underline"
+                        >
+                           Undo
+                        </button>
+                     </p>
+                  )}
+
+                  {imageError && <p className="text-sm text-red-500">{imageError}</p>}
                </div>
 
                {submitError && <p className="text-sm text-red-500">{submitError}</p>}
@@ -234,7 +422,7 @@ export default function ManagePortfolios() {
          await updatePortfolio(selectedPortfolio.id, dto as UpdatePortfolioDto)
       }
 
-      await refetch()
+      refetch()
    }
 
    const confirmDelete = async () => {
@@ -246,7 +434,7 @@ export default function ManagePortfolios() {
       try {
          await deletePortfolio(deleteTarget.id)
          setDeleteTarget(null)
-         await refetch()
+         refetch()
       } catch {
          setDeleteError('Failed to delete this portfolio. Please try again.')
       } finally {
@@ -332,60 +520,72 @@ export default function ManagePortfolios() {
                   </div>
                ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                     {portfolios.map((portfolio, index) => (
-                        <Card
-                           key={portfolio.id}
-                           className="group overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-[0_10px_28px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(15,23,42,0.16)]"
-                        >
-                           <div className="relative aspect-[4/5] overflow-hidden">
-                              <img
-                                 src={portfolio.image ?? '/portfolio/fallback.jpg'}
-                                 alt={portfolio.title}
-                                 className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                              />
+                     {portfolios.map((portfolio, index) => {
+                        const cover = portfolio.images[0]
 
-                              <div
-                                 className={`absolute inset-0 bg-gradient-to-t ${accentClasses[index % accentClasses.length]} opacity-90 transition duration-300 group-hover:opacity-100`}
-                              />
+                        return (
+                           <Card
+                              key={portfolio.id}
+                              className="group overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-[0_10px_28px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(15,23,42,0.16)]"
+                           >
+                              <div className="relative aspect-[4/5] overflow-hidden">
+                                 <img
+                                    src={cover ? toImageSrc(cover) : '/portfolio/fallback.jpg'}
+                                    alt={portfolio.title}
+                                    loading="lazy"
+                                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                                 />
 
-                              <div className="absolute inset-x-0 top-0 flex items-center justify-end gap-2 p-4">
-                                 <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="icon"
-                                    className="h-9 w-9 rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur-md hover:bg-white"
-                                    onClick={() => openEditForm(portfolio)}
-                                 >
-                                    <Edit2 className="h-4 w-4" />
-                                 </Button>
-                                 <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="icon"
-                                    className="h-9 w-9 rounded-full bg-white/90 text-red-600 shadow-lg backdrop-blur-md hover:bg-white hover:text-red-700"
-                                    onClick={() => setDeleteTarget(portfolio)}
-                                 >
-                                    <Trash2 className="h-4 w-4" />
-                                 </Button>
-                              </div>
+                                 <div
+                                    className={`absolute inset-0 bg-gradient-to-t ${accentClasses[index % accentClasses.length]} opacity-90 transition duration-300 group-hover:opacity-100`}
+                                 />
 
-                              <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                                 <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur-md">
-                                    <Sparkles className="h-3.5 w-3.5" />
-                                    {portfolio.category}
+                                 <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-4">
+                                    <div className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                       <Images className="h-3.5 w-3.5" />
+                                       {portfolio.images.length}
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                       <Button
+                                          type="button"
+                                          variant="secondary"
+                                          size="icon"
+                                          className="h-9 w-9 rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur-md hover:bg-white"
+                                          onClick={() => openEditForm(portfolio)}
+                                       >
+                                          <Edit2 className="h-4 w-4" />
+                                       </Button>
+                                       <Button
+                                          type="button"
+                                          variant="secondary"
+                                          size="icon"
+                                          className="h-9 w-9 rounded-full bg-white/90 text-red-600 shadow-lg backdrop-blur-md hover:bg-white hover:text-red-700"
+                                          onClick={() => setDeleteTarget(portfolio)}
+                                       >
+                                          <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                    </div>
                                  </div>
 
-                                 <h3 className="text-xl font-extrabold tracking-tight transition duration-300 group-hover:-translate-y-1">
-                                    {portfolio.title}
-                                 </h3>
+                                 <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                                    <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur-md">
+                                       <Sparkles className="h-3.5 w-3.5" />
+                                       {portfolio.category}
+                                    </div>
 
-                                 <p className="mt-2 text-sm text-white/85 transition duration-300 group-hover:-translate-y-1">
-                                    {portfolio.description ?? 'Studio portfolio collection'}
-                                 </p>
+                                    <h3 className="text-xl font-extrabold tracking-tight transition duration-300 group-hover:-translate-y-1">
+                                       {portfolio.title}
+                                    </h3>
+
+                                    <p className="mt-2 text-sm text-white/85 transition duration-300 group-hover:-translate-y-1">
+                                       {portfolio.description ?? 'Studio portfolio collection'}
+                                    </p>
+                                 </div>
                               </div>
-                           </div>
-                        </Card>
-                     ))}
+                           </Card>
+                        )
+                     })}
                   </div>
                )}
             </section>
@@ -404,7 +604,7 @@ export default function ManagePortfolios() {
                <AlertDialogHeader>
                   <AlertDialogTitle>Delete "{deleteTarget?.title}"?</AlertDialogTitle>
                   <AlertDialogDescription>
-                     This will permanently remove this portfolio item. This action cannot be undone.
+                     This will permanently remove this portfolio item and all of its images. This action cannot be undone.
                   </AlertDialogDescription>
                </AlertDialogHeader>
 

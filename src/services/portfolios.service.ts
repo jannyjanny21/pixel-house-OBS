@@ -16,7 +16,19 @@ export async function getPortfolioById(id: number): Promise<GetPortfolioDto> {
 export async function createPortfolio(
    dto: CreatePortfolioDto,
 ): Promise<GetPortfolioDto> {
-   const response = await api.post<GetPortfolioDto>("/portfolios/create", dto);
+   const formData = new FormData();
+   formData.append("Title", dto.title);
+   formData.append("Category", dto.category);
+   if (dto.description) formData.append("Description", dto.description);
+   dto.images?.forEach((file) => formData.append("Images", file));
+
+   const response = await api.post<GetPortfolioDto>(
+      "/portfolios/create",
+      formData,
+      {
+         headers: { "Content-Type": "multipart/form-data" },
+      },
+   );
    return response.data;
 }
 
@@ -24,9 +36,21 @@ export async function updatePortfolio(
    id: number,
    dto: UpdatePortfolioDto,
 ): Promise<GetPortfolioDto> {
+   const formData = new FormData();
+   formData.append("Title", dto.title);
+   formData.append("Category", dto.category);
+   formData.append("Description", dto.description ?? "");
+   dto.newImages?.forEach((file) => formData.append("NewImages", file));
+   dto.removeImageIds?.forEach((imageId) =>
+      formData.append("RemoveImageIds", imageId.toString()),
+   );
+
    const response = await api.put<GetPortfolioDto>(
       `/portfolios/update/${id}`,
-      dto,
+      formData,
+      {
+         headers: { "Content-Type": "multipart/form-data" },
+      },
    );
    return response.data;
 }

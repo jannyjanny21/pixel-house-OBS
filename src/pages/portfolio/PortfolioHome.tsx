@@ -1,10 +1,15 @@
-import { ArrowRight, Camera, Sparkles } from 'lucide-react'
+import { ArrowRight, Camera, Eye, Images, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import PortfolioViewDialog from '@/components/portfolio/PortfolioViewDialog'
+import type { GetPortfolioDto } from '@/types/portfolios/GetPortfolioDto'
 import { useNavigate } from 'react-router-dom'
 import HomeLayout from '@/layout/HomeLayout'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import heroBanner from '@/assets/hero.png'
 import { usePortfolios } from '@/hooks/usePortfolios'
+import { toImageSrc } from '@/lib/portfolioImage'
+
 
 const accentClasses = [
    'from-slate-950/85 via-slate-950/35 to-transparent',
@@ -17,6 +22,13 @@ const accentClasses = [
 export default function PortfolioHome() {
    const navigate = useNavigate()
    const { portfolios, isLoading, error } = usePortfolios()
+   const [viewTarget, setViewTarget] = useState<GetPortfolioDto | null>(null)
+   const [isViewOpen, setIsViewOpen] = useState(false)
+
+   const openView = (portfolio: GetPortfolioDto) => {
+      setViewTarget(portfolio)
+      setIsViewOpen(true)
+   }
 
    return (
       <HomeLayout>
@@ -83,42 +95,75 @@ export default function PortfolioHome() {
                   </div>
                ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                     {portfolios.map((portfolio, index) => (
-                        <Card
-                           key={portfolio.id}
-                           className="group overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-[0_10px_28px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(15,23,42,0.16)]"
-                        >
-                           <div className="relative aspect-[4/5] overflow-hidden">
-                              <img
-                                 src={portfolio.image ?? '/portfolio/fallback.jpg'}
-                                 alt={portfolio.title}
-                                 className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                              />
+                     {portfolios.map((portfolio, index) => {
+                        const cover = portfolio.images[0]
 
-                              <div
-                                 className={`absolute inset-0 bg-gradient-to-t ${accentClasses[index % accentClasses.length]} opacity-90 transition duration-300 group-hover:opacity-100`}
-                              />
+                        return (
+                           <Card
+                              key={portfolio.id}
+                              className="group overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-[0_10px_28px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(15,23,42,0.16)]"
+                           >
+                              <div className="relative aspect-[4/5] overflow-hidden">
+                                 <img
+                                    src={cover ? toImageSrc(cover) : '/portfolio/fallback.jpg'}
+                                    alt={portfolio.title}
+                                    loading="lazy"
+                                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110 group-hover:blur-[2px] group-focus-within:scale-110 group-focus-within:blur-[2px]"
+                                 />
 
-                              <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                                 <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur-md">
-                                    <Sparkles className="h-3.5 w-3.5" />
-                                    {portfolio.category}
+                                 {/* Accent gradient — fades out on hover */}
+                                 <div
+                                    className={`absolute inset-0 bg-gradient-to-t ${accentClasses[index % accentClasses.length]} opacity-90 transition duration-300 group-hover:opacity-0 group-focus-within:opacity-0`}
+                                 />
+
+                                 {/* Dark veil — fades in on hover */}
+                                 <div className="absolute inset-0 bg-slate-950/0 transition duration-300 group-hover:bg-slate-950/55 group-focus-within:bg-slate-950/55" />
+
+                                 {portfolio.images.length > 1 && (
+                                    <div className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition duration-300 group-hover:opacity-0 group-focus-within:opacity-0">
+                                       <Images className="h-3.5 w-3.5" />
+                                       {portfolio.images.length}
+                                    </div>
+                                 )}
+
+                                 {/* Text — slides down and disappears on hover */}
+                                 <div className="absolute inset-x-0 bottom-0 p-5 text-white transition duration-300 group-hover:translate-y-4 group-hover:opacity-0 group-focus-within:translate-y-4 group-focus-within:opacity-0">
+                                    <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur-md">
+                                       <Sparkles className="h-3.5 w-3.5" />
+                                       {portfolio.category}
+                                    </div>
+
+                                    <h3 className="text-xl font-extrabold tracking-tight">
+                                       {portfolio.title}
+                                    </h3>
+
+                                    <p className="mt-2 text-sm text-white/85">
+                                       {portfolio.description ?? 'Studio portfolio collection'}
+                                    </p>
                                  </div>
 
-                                 <h3 className="text-xl font-extrabold tracking-tight transition duration-300 group-hover:-translate-y-1">
-                                    {portfolio.title}
-                                 </h3>
-
-                                 <p className="mt-2 text-sm text-white/85 transition duration-300 group-hover:-translate-y-1">
-                                    {portfolio.description ?? 'Studio portfolio collection'}
-                                 </p>
+                                 {/* View button — appears in the center on hover */}
+                                 <div className="absolute inset-0 flex items-center justify-center">
+                                    <Button
+                                       onClick={() => openView(portfolio)}
+                                       className="translate-y-3 scale-95 rounded-full bg-white px-6 font-semibold text-[#1f3a60] opacity-0 shadow-xl transition duration-300 hover:bg-[#ff6b2d] hover:text-white group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:scale-100 focus-visible:opacity-100"
+                                    >
+                                       <Eye className="mr-2 h-4 w-4" />
+                                       View
+                                    </Button>
+                                 </div>
                               </div>
-                           </div>
-                        </Card>
-                     ))}
+                           </Card>
+                        )
+                     })}
                   </div>
                )}
             </section>
+            <PortfolioViewDialog
+               open={isViewOpen}
+               onOpenChange={setIsViewOpen}
+               portfolio={viewTarget}
+            />
          </main>
       </HomeLayout>
    )
