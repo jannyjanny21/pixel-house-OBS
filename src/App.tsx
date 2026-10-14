@@ -8,6 +8,7 @@ import Calendar from './pages/admin/Calendar'
 import Packages from './pages/admin/Packages'
 import PortfolioHome from './pages/portfolio/PortfolioHome'
 import Portfolios from './pages/admin/Portfolios'
+import ContactUs from './pages/homepage/ContactUs'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/portfolio" element={<PortfolioHome />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/book-appointments" element={<BookAppointment />} />
+      <Route path="/contact" element={<ContactUs />} />
 
       //Adminroutes
       <Route path="/admin/dashboard" element={<Dashboard />} />

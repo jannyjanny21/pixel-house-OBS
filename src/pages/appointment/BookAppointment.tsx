@@ -59,6 +59,15 @@ const formatTimeForDisplay = (time24: string): string => {
    return `${hour12}:00 ${period}`;
 };
 
+// Returns the date as YYYY-MM-DD in the user's LOCAL timezone.
+// Don't use toISOString() here: it returns UTC and can be off by a day.
+const getLocalDateString = (date: Date = new Date()): string => {
+   const year = date.getFullYear()
+   const month = String(date.getMonth() + 1).padStart(2, '0')
+   const day = String(date.getDate()).padStart(2, '0')
+   return `${year}-${month}-${day}`
+}
+
 
 
 export default function BookAppointment() {
@@ -110,6 +119,23 @@ export default function BookAppointment() {
          [key]: value,
       }))
    }
+
+
+   // Hide time slots that have already passed when today is the selected date
+   const availableTimes = useMemo(() => {
+      if (formData.preferredDate !== getLocalDateString()) return timeOptions
+      const currentHour = new Date().getHours()
+      return timeOptions.filter(
+         (time) => parseInt(time.split(':')[0], 10) > currentHour,
+      )
+   }, [formData.preferredDate])
+
+   // Clear a selected time that is no longer valid after the date changes
+   useEffect(() => {
+      if (formData.preferredTime && !availableTimes.includes(formData.preferredTime)) {
+         setFormData((current) => ({ ...current, preferredTime: '' }))
+      }
+   }, [availableTimes, formData.preferredTime])
 
 
    const [packageOpen, setPackageOpen] = useState(false)
@@ -173,14 +199,22 @@ export default function BookAppointment() {
 
       if (!data.preferredDate) return 'Please select a preferred date.'
 
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const selectedDate = new Date(data.preferredDate)
-      if (selectedDate < today) {
+      // Compare YYYY-MM-DD strings (local time) to avoid UTC/local timezone bugs
+      const todayStr = getLocalDateString()
+      if (data.preferredDate < todayStr) {
          return 'Preferred date cannot be in the past.'
       }
 
       if (!data.preferredTime) return 'Please select a preferred time.'
+
+      // If booking for today, the time must not have already passed
+      if (data.preferredDate === todayStr) {
+         const [hour] = data.preferredTime.split(':').map(Number)
+         if (hour <= new Date().getHours()) {
+            return 'Preferred time has already passed. Please choose a later time.'
+         }
+      }
+
       if (data.packageIDs.length === 0) return 'Please select at least one package.'
 
       return null
@@ -527,6 +561,7 @@ export default function BookAppointment() {
                                  <Input
                                     id="preferredDate"
                                     type="date"
+                                    min={getLocalDateString()}
                                     value={formData.preferredDate}
                                     onChange={(event) =>
                                        updateField('preferredDate', event.target.value)
@@ -545,7 +580,7 @@ export default function BookAppointment() {
                                     className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                                  >
                                     <option value="">Select a preferred time...</option>
-                                    {timeOptions.map((time) => (
+                                    {availableTimes.map((time) => (
                                        <option key={time} value={time}>
                                           {formatTimeForDisplay(time)}
                                        </option>

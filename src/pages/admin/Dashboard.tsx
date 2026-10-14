@@ -4,21 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { useDashboard } from "@/hooks/useDashboard"
 import { formatCurrency, formatMonthYear, formatShortDate } from "@/lib/salesFormatters"
 import { useNavigate } from "react-router-dom"
-
-
-const STATUS_BADGE_CLASSES: Record<string, string> = {
-   Confirmed: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-   Pending: "bg-amber-100 text-amber-700 hover:bg-amber-100",
-   Cancelled: "bg-red-100 text-red-700 hover:bg-red-100",
-   Completed: "bg-slate-100 text-slate-700 hover:bg-slate-100",
-};
-
-const DEFAULT_BADGE_CLASS = "bg-slate-100 text-slate-700 hover:bg-slate-100";
-
-function badgeClassForStatus(status: string): string {
-   return STATUS_BADGE_CLASSES[status] ?? DEFAULT_BADGE_CLASS;
-}
-
+import { getStatusMeta } from "@/lib/bookingStatus"
 
 
 export default function Dashboard() {
@@ -198,8 +184,11 @@ export default function Dashboard() {
                                  </td>
                                  <td className="px-8 py-5 text-slate-600">{booking.date}</td>
                                  <td className="px-8 py-5">
-                                    <Badge className={badgeClassForStatus(booking.status)}>
-                                       {booking.status}
+                                    <Badge
+                                       variant="outline"
+                                       className={getStatusMeta(booking.status).className}
+                                    >
+                                       {getStatusMeta(booking.status).label}
                                     </Badge>
                                  </td>
                                  <td className="px-8 py-5 text-right font-medium text-slate-900">
